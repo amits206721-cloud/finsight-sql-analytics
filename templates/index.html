@@ -1,358 +1,933 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
-    <title>FinSight - SQL Analytics Dashboard</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinSight — SQL Financial Analytics</title>
+    <!-- Inter Font & Bootstrap Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Chart.js for Real-Time SQL Data Visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
     <style>
-        @view-transition { navigation: auto; }
+        :root {
+            --bg-main: #0B1220;
+            --bg-surface: #111C2E;
+            --bg-elevated: #17253B;
+            --bg-glass: rgba(17, 28, 46, 0.78);
+            --border-subtle: rgba(148, 163, 184, 0.12);
+            --border-focus: rgba(52, 211, 153, 0.5);
+            --accent-emerald: #34D399;
+            --accent-emerald-dim: rgba(52, 211, 153, 0.12);
+            --accent-blue: #60A5FA;
+            --accent-blue-dim: rgba(96, 165, 250, 0.12);
+            --danger-red: #F87171;
+            --danger-dim: rgba(248, 113, 113, 0.12);
+            --text-primary: #F1F5F9;
+            --text-secondary: #94A3B8;
+            --sidebar-width: 260px;
+        }
 
         body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: #f8fafc;
-            background-image: 
-                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.06) 0px, transparent 40%),
-                radial-gradient(at 100% 100%, rgba(124, 58, 237, 0.05) 0px, transparent 40%);
-            color: #0f172a;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-primary);
             min-height: 100vh;
-            padding-bottom: 80px;
-        }
-        .tracking-tight { letter-spacing: -0.03em; }
-
-        /* Full Width Container */
-        .container-fluid-custom {
-            max-width: 1600px;
-            margin: 0 auto;
-            padding: 0 32px;
+            overflow-x: hidden;
+            margin: 0;
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* Frosted Glass Navbar */
-        .navbar-custom {
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(226, 232, 240, 0.8);
-            border-radius: 20px;
-            box-shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.05);
-            padding: 16px 28px;
-            margin-top: 24px;
+        .tabular-nums {
+            font-variant-numeric: tabular-nums;
         }
 
-        /* Hero Banner */
-        .hero-banner {
-            background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
-            border: 1px solid #e2e8f0;
-            border-radius: 24px;
-            padding: 40px;
-            box-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.04);
-            position: relative;
-            overflow: hidden;
-            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .hero-banner:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 25px 50px -12px rgba(99, 102, 241, 0.08);
+        /* Layout Architecture */
+        .app-wrapper {
+            display: flex;
+            min-height: 100vh;
         }
 
-        /* High-End Cards */
-        .card-custom {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 24px;
-            box-shadow: 0 12px 30px -10px rgba(15, 23, 42, 0.05);
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .card-custom:hover {
-            box-shadow: 0 24px 48px -12px rgba(99, 102, 241, 0.12);
-            border-color: #cbd5e1;
-            transform: translateY(-3px);
-        }
-
-        /* Form Inputs */
-        .form-control, .form-select {
-            background: #f8fafc;
-            border: 1.5px solid #cbd5e1;
-            border-radius: 14px;
-            padding: 14px 18px;
-            font-size: 0.95rem;
-            color: #0f172a;
-            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .form-control:focus, .form-select:focus {
-            background: #ffffff;
-            border-color: #6366f1;
-            color: #0f172a;
-            box-shadow: 0 0 0 5px rgba(99, 102, 241, 0.12);
-            transform: scale(1.002);
+        /* Sidebar Navigation */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--bg-surface);
+            border-right: 1px solid var(--border-subtle);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 1040;
+            transition: transform 0.25s ease;
         }
 
-        /* Modern Primary Button */
-        .btn-primary-custom {
-            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-            border: none;
-            border-radius: 14px;
-            padding: 15px 28px;
-            font-weight: 700;
-            color: white;
-            box-shadow: 0 8px 20px -4px rgba(99, 102, 241, 0.4);
-            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .btn-primary-custom:hover {
-            background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
-            transform: translateY(-2px);
-            box-shadow: 0 14px 28px -4px rgba(99, 102, 241, 0.5);
-            color: white;
-        }
-        .btn-primary-custom:active { transform: scale(0.98); }
-
-        /* Nav Pills */
-        .nav-pill-btn {
-            border-radius: 12px;
-            padding: 10px 22px;
-            font-weight: 600;
-            font-size: 0.925rem;
-            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        .sidebar-brand {
+            padding: 1.5rem 1.5rem 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            border-bottom: 1px solid var(--border-subtle);
             text-decoration: none;
         }
-        .nav-pill-active {
-            background: #6366f1;
-            color: white !important;
-            box-shadow: 0 6px 18px rgba(99, 102, 241, 0.35);
-        }
-        .nav-pill-inactive {
-            background: #f1f5f9;
-            color: #64748b !important;
-            border: 1px solid #e2e8f0;
-        }
-        .nav-pill-inactive:hover {
-            background: #e2e8f0;
-            color: #0f172a !important;
-            transform: translateY(-1px);
+
+        .brand-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: var(--accent-emerald-dim);
+            border: 1px solid rgba(52, 211, 153, 0.3);
+            color: var(--accent-emerald);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
         }
 
-        /* Tables & Smooth Rows */
-        .table th {
+        .brand-text {
             font-weight: 700;
-            font-size: 0.75rem;
+            font-size: 1.15rem;
+            letter-spacing: -0.02em;
+            color: var(--text-primary);
+        }
+
+        .brand-text span {
+            color: var(--accent-emerald);
+        }
+
+        .nav-section-label {
+            font-size: 0.7rem;
+            font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.08em;
-            color: #64748b;
-            background-color: transparent !important;
-            border-bottom: 2px solid #f1f5f9;
-            padding: 16px;
-        }
-        .table tbody tr {
-            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .table tbody tr.deleting {
-            opacity: 0;
-            transform: translateX(40px) scale(0.98);
-        }
-        .table tbody tr:hover {
-            background-color: #f8fafc;
-            transform: scale(1.002);
-        }
-        .table td {
-            vertical-align: middle;
-            padding: 18px 16px;
-            border-bottom: 1px solid #f1f5f9;
-            color: #334155;
-            font-size: 0.95rem;
+            color: var(--text-secondary);
+            padding: 1.5rem 1.5rem 0.5rem;
         }
 
-        /* Delete Button */
-        .delete-btn {
-            background-color: #fee2e2;
-            color: #dc2626;
+        .sidebar-nav {
+            padding: 0 0.875rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+            flex: 1;
+        }
+
+        .nav-item-link {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.7rem 0.875rem;
             border-radius: 10px;
-            padding: 8px 16px;
-            font-weight: 600;
-            font-size: 0.85rem;
-            border: 1px solid #fecaca;
-            cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            color: var(--text-secondary);
             text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: background-color 0.15s ease, color 0.15s ease;
+        }
+
+        .nav-item-link:hover {
+            background-color: var(--bg-elevated);
+            color: var(--text-primary);
+        }
+
+        .nav-item-link.active {
+            background-color: var(--accent-emerald-dim);
+            color: var(--accent-emerald);
+            border: 1px solid rgba(52, 211, 153, 0.2);
+            font-weight: 600;
+        }
+
+        .sidebar-footer {
+            padding: 1.25rem 1.5rem;
+            border-top: 1px solid var(--border-subtle);
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--accent-emerald);
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+            box-shadow: 0 0 8px var(--accent-emerald);
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        /* Top Header Bar */
+        .top-navbar {
+            background: var(--bg-glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-subtle);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1020;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .content-container {
+            padding: 2rem;
+            max-width: 1540px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        /* Surface Cards */
+        .surface-card {
+            background-color: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: 14px;
+            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.25);
+            transition: border-color 0.2s ease, transform 0.2s ease;
+        }
+
+        .kpi-card:hover {
+            border-color: rgba(148, 163, 184, 0.28);
+            transform: translateY(-2px);
+        }
+
+        .kpi-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .kpi-icon.emerald {
+            background: var(--accent-emerald-dim);
+            color: var(--accent-emerald);
+        }
+
+        .kpi-icon.blue {
+            background: var(--accent-blue-dim);
+            color: var(--accent-blue);
+        }
+
+        /* Forms & Controls */
+        .form-label {
+            color: var(--text-secondary);
+            font-size: 0.78rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 0.4rem;
+        }
+
+        .form-control, .form-select {
+            background-color: var(--bg-main);
+            border: 1px solid var(--border-subtle);
+            border-radius: 10px;
+            color: var(--text-primary);
+            padding: 0.65rem 0.9rem;
+            font-size: 0.9rem;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            background-color: var(--bg-main);
+            border-color: var(--accent-emerald);
+            color: var(--text-primary);
+            box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.15);
+            outline: none;
+        }
+
+        .form-control::placeholder {
+            color: rgba(148, 163, 184, 0.5);
+        }
+
+        .btn-emerald {
+            background-color: var(--accent-emerald);
+            color: #06281E;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border: none;
+            border-radius: 10px;
+            padding: 0.7rem 1.25rem;
+            transition: background-color 0.15s ease, transform 0.1s ease;
+        }
+
+        .btn-emerald:hover, .btn-emerald:focus-visible {
+            background-color: #2bc48a;
+            color: #06281E;
+        }
+
+        .btn-emerald:active {
+            transform: scale(0.99);
+        }
+
+        .btn-ghost {
+            background-color: var(--bg-elevated);
+            color: var(--text-primary);
+            border: 1px solid var(--border-subtle);
+            border-radius: 9px;
+            padding: 0.45rem 0.85rem;
+            font-size: 0.82rem;
+            font-weight: 500;
+            transition: all 0.15s ease;
+            text-decoration: none;
+        }
+
+        .btn-ghost:hover, .btn-ghost.active {
+            background-color: var(--accent-blue-dim);
+            border-color: rgba(96, 165, 250, 0.35);
+            color: var(--accent-blue);
+        }
+
+        /* Category Progress Bar */
+        .cat-progress-track {
+            height: 6px;
+            background-color: var(--bg-main);
+            border-radius: 99px;
+            overflow: hidden;
+        }
+
+        .cat-progress-fill {
+            height: 100%;
+            border-radius: 99px;
+            background: linear-gradient(90deg, var(--accent-emerald), var(--accent-blue));
+            transition: width 0.4s ease;
+        }
+
+        /* Data Table */
+        .table-custom {
+            margin-bottom: 0;
+            color: var(--text-primary);
+        }
+
+        .table-custom thead th {
+            background-color: rgba(11, 18, 32, 0.5);
+            color: var(--text-secondary);
+            font-size: 0.73rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            padding: 0.875rem 1.25rem;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .table-custom tbody tr {
+            border-bottom: 1px solid var(--border-subtle);
+            transition: background-color 0.15s ease, opacity 0.25s ease, transform 0.25s ease;
+        }
+
+        .table-custom tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        .table-custom tbody tr:hover {
+            background-color: rgba(23, 37, 59, 0.5);
+        }
+
+        .table-custom tbody tr.deleting {
+            opacity: 0;
+            transform: translateX(24px);
+        }
+
+        .table-custom td {
+            padding: 1rem 1.25rem;
+            vertical-align: middle;
+            font-size: 0.9rem;
+            border: none;
+        }
+
+        /* Badges */
+        .cat-badge {
+            background-color: var(--bg-elevated);
+            color: var(--text-primary);
+            border: 1px solid var(--border-subtle);
+            font-size: 0.75rem;
+            font-weight: 500;
+            padding: 0.3rem 0.65rem;
+            border-radius: 6px;
             display: inline-block;
         }
-        .delete-btn:hover {
-            background-color: #dc2626;
-            color: white;
-            box-shadow: 0 4px 14px rgba(220, 38, 38, 0.35);
-            transform: translateY(-1px);
+
+        .mode-badge {
+            color: var(--accent-blue);
+            background-color: var(--accent-blue-dim);
+            font-size: 0.73rem;
+            font-weight: 600;
+            padding: 0.25rem 0.55rem;
+            border-radius: 6px;
         }
-        .delete-btn:active { transform: scale(0.96); }
+
+        .btn-delete {
+            background-color: var(--danger-dim);
+            color: var(--danger-red);
+            border: 1px solid rgba(248, 113, 113, 0.2);
+            border-radius: 8px;
+            padding: 0.35rem 0.75rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: all 0.15s ease;
+        }
+
+        .btn-delete:hover:not(:disabled) {
+            background-color: var(--danger-red);
+            color: #0B1220;
+        }
+
+        /* Responsive Breakpoints */
+        @media (max-width: 991.98px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .content-container {
+                padding: 1.25rem;
+            }
+            .top-navbar {
+                padding: 0.875rem 1.25rem;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, ::before, ::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="container-fluid-custom">
-        
-        <!-- Navigation Bar -->
-        <nav class="navbar-custom d-flex align-items-center justify-content-between mb-4 sticky-top">
-            <a class="fw-bolder fs-4 text-decoration-none d-flex align-items-center gap-2" href="{{ url_for('index') }}">
-                <div class="text-white p-2 rounded-3 fs-5 shadow-sm" style="background: linear-gradient(135deg, #6366f1, #4f46e5);">💰</div>
-                <span class="text-dark tracking-tight">Fin<span style="color: #6366f1;">Sight</span></span>
+
+{# Compute accurate metrics directly from existing SQLite payloads #}
+{% set total_spent = category_summary | sum(attribute='total_spent') if category_summary else 0 %}
+{% set txn_count = expenses | length %}
+{% set top_category = category_summary[0]['category'] if category_summary else 'None' %}
+{% set top_category_amount = category_summary[0]['total_spent'] if category_summary else 0 %}
+{% set avg_txn = (total_spent / txn_count) | round(0, 'common') | int if txn_count > 0 else 0 %}
+
+<div class="app-wrapper">
+    <!-- Mobile Sidebar Backdrop -->
+    <div id="sidebarBackdrop" class="position-fixed top-0 start-0 w-100 h-100 bg-black bg-opacity-50 d-none" style="z-index: 1035;" onclick="toggleSidebar()"></div>
+
+    <!-- Left Navigation Sidebar -->
+    <aside class="sidebar" id="appSidebar" aria-label="Main Navigation">
+        <a href="{{ url_for('index') }}" class="sidebar-brand">
+            <div class="brand-icon"><i class="bi bi-bar-chart-steps"></i></div>
+            <div class="brand-text">Fin<span>Sight</span></div>
+        </a>
+
+        <div class="nav-section-label">Analytics Workspace</div>
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('index') }}" class="nav-item-link active">
+                <span><i class="bi bi-grid-1x2 me-2"></i> Dashboard</span>
             </a>
+            <a href="#transactions-section" class="nav-item-link">
+                <span><i class="bi bi-receipt me-2"></i> Transactions</span>
+                <span class="badge rounded-pill bg-secondary bg-opacity-25 text-secondary tabular-nums">{{ txn_count }}</span>
+            </a>
+            <a href="{{ url_for('trash') }}" class="nav-item-link">
+                <span><i class="bi bi-trash3 me-2"></i> Trash Bin</span>
+                <span id="sidebar-trash-badge" class="badge rounded-pill {% if trash_count > 0 %}bg-danger text-white{% else %}bg-secondary bg-opacity-25 text-secondary{% endif %} tabular-nums">
+                    {{ trash_count }}
+                </span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="d-flex align-items-center mb-1">
+                <span class="status-dot"></span>
+                <span class="fw-medium text-light">SQLite DQL Engine</span>
+            </div>
+            <div>Connected to <code>finsight.db</code></div>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="main-content">
+        <!-- Sticky Topbar -->
+        <header class="top-navbar">
+            <div class="d-flex align-items-center gap-3">
+                <button class="btn btn-ghost d-lg-none" type="button" onclick="toggleSidebar()" aria-label="Toggle Menu">
+                    <i class="bi bi-list fs-5"></i>
+                </button>
+                <div>
+                    <h1 class="h5 fw-bold mb-0">Financial Overview</h1>
+                    <p class="text-secondary small mb-0 d-none d-sm-block">Real-time SQLite aggregation &amp; expense ledger</p>
+                </div>
+            </div>
             <div class="d-flex align-items-center gap-2">
-                <a href="{{ url_for('index') }}" class="nav-pill-btn nav-pill-active">Dashboard</a>
-                <a href="{{ url_for('analytics') }}" class="nav-pill-btn nav-pill-inactive">📈 Analytics</a>
-                <a href="{{ url_for('trash') }}" class="nav-pill-btn nav-pill-inactive position-relative">
-                    🗑️ Trash
-                    <span id="trash-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger px-2 py-1 {% if trash_count == 0 %}d-none{% endif %}">
+                <a href="{{ url_for('trash') }}" class="btn-ghost position-relative" title="View Deleted Items">
+                    <i class="bi bi-trash3 me-1"></i> Trash
+                    <span id="top-trash-badge" class="badge rounded-pill bg-danger ms-1 tabular-nums {% if trash_count == 0 %}d-none{% endif %}">
                         {{ trash_count }}
                     </span>
                 </a>
+                <a href="#expense-form-card" class="btn-emerald text-decoration-none d-inline-flex align-items-center gap-1 py-2 px-3">
+                    <i class="bi bi-plus-lg"></i> <span>New Expense</span>
+                </a>
             </div>
-        </nav>
+        </header>
 
-        <!-- Hero Banner -->
-        <div class="hero-banner mb-4">
-            <span class="badge mb-2 px-3 py-2 rounded-pill fw-bold" style="background: #e0e7ff; color: #4f46e5; font-size: 0.75rem; border: 1px solid #c7d2fe;">LIVE SQL ANALYTICS ENGINE</span>
-            <h1 class="fw-bolder text-dark display-6 mb-2 tracking-tight">Financial Intelligence Dashboard</h1>
-            <p class="text-muted mb-0 fs-6">Real-time database analytics powered by Python Flask, SQLite, and optimized DQL queries (`GROUP BY`, `SUM`, `SELECT`, `DELETE`).</p>
-        </div>
+        <main class="content-container">
+            <!-- Row 1: KPI Summary Cards -->
+            <div class="row g-3 mb-4">
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="surface-card kpi-card p-3 p-md-4 h-100">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <span class="text-secondary small fw-semibold text-uppercase">Total Spending</span>
+                            <div class="kpi-icon emerald"><i class="bi bi-wallet2"></i></div>
+                        </div>
+                        <div class="h3 fw-bold mb-1 tabular-nums">₹{{ "{:,.0f}".format(total_spent) }}</div>
+                        <div class="small text-secondary">SQL <code>SUM(amount)</code> aggregate</div>
+                    </div>
+                </div>
 
-        <!-- Add Expense Form Card -->
-        <div class="card-custom p-4 mb-4">
-            <h5 class="fw-bold text-dark mb-4 d-flex align-items-center gap-2">
-                <span class="p-2 rounded-2 bg-light text-primary border shadow-sm">➕</span> Add New Expense Record
-            </h5>
-            <form action="{{ url_for('add_expense') }}" method="POST" class="row g-3">
-                <div class="col-md-3">
-                    <label for="expense-title" class="form-label small text-secondary fw-bold">Expense Title</label>
-                    <input id="expense-title" type="text" class="form-control" name="title" placeholder="e.g. Morning Coffee" required>
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="surface-card kpi-card p-3 p-md-4 h-100">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <span class="text-secondary small fw-semibold text-uppercase">Transactions</span>
+                            <div class="kpi-icon blue"><i class="bi bi-arrow-left-right"></i></div>
+                        </div>
+                        <div class="h3 fw-bold mb-1 tabular-nums">{{ txn_count }}</div>
+                        <div class="small text-secondary">Avg. ₹{{ "{:,.0f}".format(avg_txn) }} per entry</div>
+                    </div>
                 </div>
-                <div class="col-md-2">
-                    <label for="expense-category" class="form-label small text-secondary fw-bold">Category</label>
-                    <select id="expense-category" class="form-select" name="category" required>
-                        <option value="Food">Food</option>
-                        <option value="Travel">Travel</option>
-                        <option value="Shopping">Shopping</option>
-                        <option value="Bills">Bills</option>
-                        <option value="Entertainment">Entertainment</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label for="payment-mode" class="form-label small text-secondary fw-bold">Payment Mode</label>
-                    <select id="payment-mode" class="form-select" name="payment_mode" required>
-                        <option value="UPI">UPI</option>
-                        <option value="Card">Card</option>
-                        <option value="NetBanking">NetBanking</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label for="expense-amount" class="form-label small text-secondary fw-bold">Amount (₹)</label>
-                    <input id="expense-amount" type="number" class="form-control" name="amount" min="1" step="1" placeholder="e.g. 150" required>
-                </div>
-                <div class="col-md-3">
-                    <label for="spend-date" class="form-label small text-secondary fw-bold">Date</label>
-                    <input id="spend-date" type="date" class="form-control" name="spend_date" value="{{ today }}" required>
-                </div>
-                <div class="col-12 mt-4">
-                    <button type="submit" class="btn-primary-custom w-100 py-3">Save Expense to Database</button>
-                </div>
-            </form>
-        </div>
 
-        <div class="row g-4">
-            <!-- Left Column: Category Summary (GROUP BY) -->
-            <div class="col-lg-4">
-                <div class="card-custom p-4 h-100">
-                    <h5 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
-                        <span>📊</span> Spending by Category
-                    </h5>
-                    <div class="table-responsive">
-                        <table class="table align-middle mb-0">
-                            <thead>
-                                <tr>
-                                    <th>Category</th>
-                                    <th class="text-end">Total Spent</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for row in category_summary %}
-                                <tr>
-                                    <td class="fw-bold text-dark">{{ row['category'] }}</td>
-                                    <td class="text-end fw-bolder fs-6" style="color: #6366f1;">₹{{ row['total_spent'] }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="surface-card kpi-card p-3 p-md-4 h-100">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <span class="text-secondary small fw-semibold text-uppercase">Highest Category</span>
+                            <div class="kpi-icon emerald"><i class="bi bi-pie-chart"></i></div>
+                        </div>
+                        <div class="h3 fw-bold mb-1 text-truncate">{{ top_category }}</div>
+                        <div class="small text-secondary tabular-nums">
+                            {% if total_spent > 0 %}
+                                ₹{{ "{:,.0f}".format(top_category_amount) }} ({{ ((top_category_amount / total_spent) * 100) | round(1) }}%)
+                            {% else %}
+                                No spend recorded
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="surface-card kpi-card p-3 p-md-4 h-100">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <span class="text-secondary small fw-semibold text-uppercase">Active Categories</span>
+                            <div class="kpi-icon blue"><i class="bi bi-layers"></i></div>
+                        </div>
+                        <div class="h3 fw-bold mb-1 tabular-nums">{{ category_summary | length }}</div>
+                        <div class="small text-secondary">SQL <code>GROUP BY category</code></div>
                     </div>
                 </div>
             </div>
 
-            <!-- Right Column: All Transactions (SELECT *) -->
-            <div class="col-lg-8">
-                <div class="card-custom p-4 h-100" id="transactions">
-                    <h5 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
-                        <span>📝</span> Recent Transactions
-                    </h5>
-                    <div class="table-responsive">
-                        <table class="table align-middle mb-0">
-                            <thead>
-                                <tr>
-                                    <th>Title</th>
-                                    <th>Category</th>
-                                    <th>Mode</th>
-                                    <th>Amount</th>
-                                    <th>Date</th>
-                                    <th class="text-end">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for e in expenses %}
-                                <tr id="row-{{ e['id'] }}">
-                                    <td class="fw-bold text-dark">{{ e['title'] }}</td>
-                                    <td><span class="badge bg-light text-dark border border-secondary-subtle px-2.5 py-1.5 rounded-3 fw-semibold">{{ e['category'] }}</span></td>
-                                    <td><span class="text-muted small fw-semibold">{{ e['payment_mode'] }}</span></td>
-                                    <td class="fw-bolder text-dark">₹{{ e['amount'] }}</td>
-                                    <td class="text-muted small fw-medium">{{ e['spend_date'] }}</td>
-                                    <td class="text-end">
-                                        <button type="button" class="delete-btn" data-delete-url="{{ url_for('delete_expense', txn_id=e['id']) }}">Delete</button>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+            <!-- Row 2: Charts & Category Analytics -->
+            <div class="row g-4 mb-4">
+                <!-- Spending Trend Chart -->
+                <div class="col-12 col-lg-7">
+                    <div class="surface-card p-4 h-100 d-flex flex-column">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                            <div>
+                                <h2 class="h6 fw-bold mb-1">Spending Velocity by Date</h2>
+                                <p class="text-secondary small mb-0">Daily expenditure aggregated from transaction records</p>
+                            </div>
+                            <div class="btn-group" role="group" aria-label="Date range filter">
+                                <button type="button" class="btn-ghost active" data-range="all" onclick="filterTrendChart('all', this)">All Time</button>
+                                <button type="button" class="btn-ghost ms-1" data-range="7" onclick="filterTrendChart(7, this)">Last 7 Active Days</button>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 position-relative" style="min-height: 260px;">
+                            {% if expenses %}
+                                <canvas id="spendingTrendChart"></canvas>
+                            {% else %}
+                                <div class="h-100 d-flex flex-column align-items-center justify-content-center text-secondary py-5">
+                                    <i class="bi bi-graph-up fs-2 mb-2 opacity-50"></i>
+                                    <p class="small mb-0">Add expenses below to visualize spending trends.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Category Breakdown (SQL GROUP BY) -->
+                <div class="col-12 col-lg-5">
+                    <div class="surface-card p-4 h-100 d-flex flex-column">
+                        <div class="mb-3">
+                            <h2 class="h6 fw-bold mb-1">Category Allocation</h2>
+                            <p class="text-secondary small mb-0">Proportional distribution (<code>GROUP BY category</code>)</p>
+                        </div>
+
+                        {% if category_summary %}
+                            <div class="row align-items-center g-3 my-auto">
+                                <div class="col-sm-5">
+                                    <div style="max-width: 180px; margin: 0 auto;">
+                                        <canvas id="categoryDoughnutChart"></canvas>
+                                    </div>
+                                </div>
+                                <div class="col-sm-7">
+                                    <div class="d-flex flex-column gap-3">
+                                        {% for row in category_summary %}
+                                            {% set pct = ((row['total_spent'] / total_spent) * 100) | round(1) if total_spent > 0 else 0 %}
+                                            <div class="category-summary-item" data-category="{{ row['category'] }}" data-total="{{ row['total_spent'] }}">
+                                                <div class="d-flex justify-content-between small mb-1">
+                                                    <span class="fw-medium">{{ row['category'] }}</span>
+                                                    <span class="tabular-nums text-secondary">
+                                                        <strong class="text-light">₹{{ "{:,.0f}".format(row['total_spent']) }}</strong> ({{ pct }}%)
+                                                    </span>
+                                                </div>
+                                                <div class="cat-progress-track">
+                                                    <div class="cat-progress-fill" data-percent="{{ pct }}"></div>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="my-auto text-center text-secondary py-5">
+                                <i class="bi bi-pie-chart fs-2 mb-2 opacity-50 d-block"></i>
+                                <span class="small">No category data available.</span>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
-        </div>
+
+            <!-- Row 3: Expense Entry Form + Recent Transactions Table -->
+            <div class="row g-4" id="transactions-section">
+                <!-- Add New Expense Form -->
+                <div class="col-12 col-xl-4">
+                    <div class="surface-card p-4" id="expense-form-card">
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <div class="kpi-icon emerald" style="width: 34px; height: 34px; font-size: 1rem;">
+                                <i class="bi bi-plus-circle"></i>
+                            </div>
+                            <div>
+                                <h2 class="h6 fw-bold mb-0">Record Expense</h2>
+                                <p class="text-secondary small mb-0">Insert directly into SQLite</p>
+                            </div>
+                        </div>
+
+                        <form action="{{ url_for('add_expense') }}" method="POST" class="row g-3">
+                            <div class="col-12">
+                                <label for="expense-title" class="form-label">Expense Title</label>
+                                <input id="expense-title" type="text" class="form-control" name="title" placeholder="e.g. AWS Cloud Invoice, Coffee" required>
+                            </div>
+
+                            <div class="col-sm-6 col-xl-12">
+                                <label for="expense-category" class="form-label">Category</label>
+                                <select id="expense-category" class="form-select" name="category" required>
+                                    <option value="Food">Food &amp; Dining</option>
+                                    <option value="Travel">Travel &amp; Transit</option>
+                                    <option value="Shopping">Shopping</option>
+                                    <option value="Bills">Bills &amp; Utilities</option>
+                                    <option value="Entertainment">Entertainment</option>
+                                </select>
+                            </div>
+
+                            <div class="col-sm-6 col-xl-6">
+                                <label for="payment-mode" class="form-label">Payment Mode</label>
+                                <select id="payment-mode" class="form-select" name="payment_mode" required>
+                                    <option value="UPI">UPI</option>
+                                    <option value="Card">Card</option>
+                                    <option value="NetBanking">NetBanking</option>
+                                </select>
+                            </div>
+
+                            <div class="col-sm-6 col-xl-6">
+                                <label for="expense-amount" class="form-label">Amount (₹)</label>
+                                <input id="expense-amount" type="number" class="form-control tabular-nums" name="amount" min="1" step="1" placeholder="150" required>
+                            </div>
+
+                            <div class="col-sm-6 col-xl-12">
+                                <label for="spend-date" class="form-label">Transaction Date</label>
+                                <input id="spend-date" type="date" class="form-control tabular-nums" name="spend_date" value="{{ today }}" required>
+                            </div>
+
+                            <div class="col-12 pt-2">
+                                <button type="submit" class="btn-emerald w-100 d-flex align-items-center justify-content-center gap-2">
+                                    <i class="bi bi-check2-circle"></i> Save Transaction
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Recent Transactions Table -->
+                <div class="col-12 col-xl-8">
+                    <div class="surface-card h-100 d-flex flex-column overflow-hidden">
+                        <div class="p-4 border-bottom" style="border-color: var(--border-subtle) !important;">
+                            <div class="row g-2 align-items-center justify-content-between">
+                                <div class="col-md-5">
+                                    <h2 class="h6 fw-bold mb-1">Transaction Ledger</h2>
+                                    <p class="text-secondary small mb-0">Ordered by <code>spend_date DESC</code></p>
+                                </div>
+                                <div class="col-md-7 d-flex gap-2">
+                                    <input type="search" id="tableSearchInput" class="form-control form-control-sm" placeholder="Search title or mode..." oninput="filterTransactionsTable()">
+                                    <select id="tableCategoryFilter" class="form-select form-select-sm" style="max-width: 150px;" onchange="filterTransactionsTable()">
+                                        <option value="">All Categories</option>
+                                        <option value="Food">Food</option>
+                                        <option value="Travel">Travel</option>
+                                        <option value="Shopping">Shopping</option>
+                                        <option value="Bills">Bills</option>
+                                        <option value="Entertainment">Entertainment</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive flex-grow-1">
+                            <table class="table table-custom align-middle" id="transactionsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Title</th>
+                                        <th>Category</th>
+                                        <th>Mode</th>
+                                        <th>Date</th>
+                                        <th class="text-end">Amount</th>
+                                        <th class="text-end">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for e in expenses %}
+                                    <tr id="row-{{ e['id'] }}" data-title="{{ e['title'] | lower }}" data-category="{{ e['category'] }}" data-mode="{{ e['payment_mode'] | lower }}" data-date="{{ e['spend_date'] }}" data-amount="{{ e['amount'] }}">
+                                        <td class="fw-medium text-light">{{ e['title'] }}</td>
+                                        <td><span class="cat-badge">{{ e['category'] }}</span></td>
+                                        <td><span class="mode-badge">{{ e['payment_mode'] }}</span></td>
+                                        <td class="text-secondary small tabular-nums">{{ e['spend_date'] }}</td>
+                                        <td class="text-end fw-bold tabular-nums" style="color: var(--accent-emerald);">₹{{ "{:,.0f}".format(e['amount']) }}</td>
+                                        <td class="text-end">
+                                            <button type="button" class="btn-delete" data-delete-url="{{ url_for('delete_expense', txn_id=e['id']) }}" aria-label="Delete {{ e['title'] }}">
+                                                <i class="bi bi-trash3 me-1"></i>Delete
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="6" class="text-center py-5 text-secondary">
+                                            <i class="bi bi-inbox fs-2 d-block mb-2 opacity-50"></i>
+                                            No transactions found in the database.
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
     </div>
+</div>
 
-    <script>
-        document.querySelectorAll('.delete-btn').forEach(button => {
-            button.addEventListener('click', async () => {
-                const row = button.closest('tr');
-                if (!row) return;
+<!-- Scripts: Charts, Filtering, and Smooth AJAX Deletion -->
+<script>
+    // Mobile Sidebar Toggle
+    function toggleSidebar() {
+        const sidebar = document.getElementById('appSidebar');
+        const backdrop = document.getElementById('sidebarBackdrop');
+        sidebar.classList.toggle('show');
+        backdrop.classList.toggle('d-none');
+    }
 
-                button.disabled = true;
-                row.classList.add('deleting');
+    // Client-side Table Search & Category Filter
+    function filterTransactionsTable() {
+        const query = document.getElementById('tableSearchInput').value.toLowerCase().trim();
+        const category = document.getElementById('tableCategoryFilter').value;
+        const rows = document.querySelectorAll('#transactionsTable tbody tr[id^="row-"]');
 
-                try {
-                    const response = await fetch(button.dataset.deleteUrl, {
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest'
-                        }
-                    });
-                    if (!response.ok) {
-                        throw new Error(`Delete failed with status ${response.status}`);
-                    }
-
-                    const data = await response.json();
-                    if (data.status !== 'success') {
-                        throw new Error('The expense could not be deleted.');
-                    }
-
-                    window.location.reload();
-                } catch (error) {
-                    console.error('Unable to delete expense:', error);
-                    row.classList.remove('deleting');
-                    button.disabled = false;
-                    window.alert('Unable to delete this expense. Please try again.');
-                }
-            });
+        rows.forEach(row => {
+            const titleMatch = row.dataset.title.includes(query) || row.dataset.mode.includes(query);
+            const catMatch = !category || row.dataset.category === category;
+            row.style.display = (titleMatch && catMatch) ? '' : 'none';
         });
-    </script>
+    }
+
+    // Smooth AJAX Delete Handler
+    document.querySelectorAll('.btn-delete').forEach(button => {
+        button.addEventListener('click', async () => {
+            const row = button.closest('tr');
+            if (!row) return;
+
+            button.disabled = true;
+            row.classList.add('deleting');
+
+            try {
+                const response = await fetch(button.dataset.deleteUrl, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const data = await response.json();
+                if (data.status === 'success') {
+                    setTimeout(() => window.location.reload(), 220);
+                }
+            } catch (err) {
+                console.error('Delete failed:', err);
+                row.classList.remove('deleting');
+                button.disabled = false;
+            }
+        });
+    });
+
+    // Data Visualization from Real SQLite Payloads
+    document.querySelectorAll('.cat-progress-fill[data-percent]').forEach(fill => {
+        const percent = Number(fill.dataset.percent);
+        fill.style.width = `${Math.min(100, Math.max(0, percent))}%`;
+    });
+
+    const rawExpenses = Array.from(
+        document.querySelectorAll('#transactionsTable tbody tr[id^="row-"]'),
+        row => ({ date: row.dataset.date, amount: Number(row.dataset.amount) })
+    );
+
+    const categoryData = Array.from(
+        document.querySelectorAll('.category-summary-item'),
+        item => ({
+            category: item.dataset.category,
+            total: Number(item.dataset.total)
+        })
+    );
+
+    // Group daily totals chronologically
+    const dailyMap = {};
+    rawExpenses.forEach(item => {
+        dailyMap[item.date] = (dailyMap[item.date] || 0) + item.amount;
+    });
+    const sortedDates = Object.keys(dailyMap).sort();
+    const sortedAmounts = sortedDates.map(d => dailyMap[d]);
+
+    let trendChartInstance = null;
+
+    if (sortedDates.length > 0 && document.getElementById('spendingTrendChart')) {
+        const ctxTrend = document.getElementById('spendingTrendChart').getContext('2d');
+        const gradient = ctxTrend.createLinearGradient(0, 0, 0, 260);
+        gradient.addColorStop(0, 'rgba(52, 211, 153, 0.28)');
+        gradient.addColorStop(1, 'rgba(52, 211, 153, 0.0)');
+
+        trendChartInstance = new Chart(ctxTrend, {
+            type: 'line',
+            data: {
+                labels: sortedDates,
+                datasets: [{
+                    label: 'Daily Spend (₹)',
+                    data: sortedAmounts,
+                    borderColor: '#34D399',
+                    backgroundColor: gradient,
+                    borderWidth: 2.5,
+                    pointBackgroundColor: '#0B1220',
+                    pointBorderColor: '#34D399',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    fill: true,
+                    tension: 0.35
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#111C2E',
+                        titleColor: '#F1F5F9',
+                        bodyColor: '#34D399',
+                        borderColor: 'rgba(148,163,184,0.2)',
+                        borderWidth: 1,
+                        padding: 10,
+                        callbacks: {
+                            label: ctx => ` ₹${ctx.parsed.y.toLocaleString('en-IN')}`
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { color: 'rgba(148, 163, 184, 0.06)' },
+                        ticks: { color: '#94A3B8', font: { family: 'Inter', size: 11 } }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(148, 163, 184, 0.06)' },
+                        ticks: {
+                            color: '#94A3B8',
+                            font: { family: 'Inter', size: 11 },
+                            callback: val => '₹' + val.toLocaleString('en-IN')
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function filterTrendChart(range, btn) {
+        if (!trendChartInstance) return;
+        document.querySelectorAll('[data-range]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        if (range === 'all') {
+            trendChartInstance.data.labels = sortedDates;
+            trendChartInstance.data.datasets[0].data = sortedAmounts;
+        } else {
+            const count = parseInt(range, 10);
+            trendChartInstance.data.labels = sortedDates.slice(-count);
+            trendChartInstance.data.datasets[0].data = sortedAmounts.slice(-count);
+        }
+        trendChartInstance.update();
+    }
+
+    if (categoryData.length > 0 && document.getElementById('categoryDoughnutChart')) {
+        const ctxDoughnut = document.getElementById('categoryDoughnutChart').getContext('2d');
+        new Chart(ctxDoughnut, {
+            type: 'doughnut',
+            data: {
+                labels: categoryData.map(c => c.category),
+                datasets: [{
+                    data: categoryData.map(c => c.total),
+                    backgroundColor: ['#34D399', '#60A5FA', '#38BDF8', '#818CF8', '#A78BFA'],
+                    borderColor: '#111C2E',
+                    borderWidth: 3,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                cutout: '70%',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#111C2E',
+                        titleColor: '#F1F5F9',
+                        bodyColor: '#34D399',
+                        borderColor: 'rgba(148,163,184,0.2)',
+                        borderWidth: 1,
+                        callbacks: {
+                            label: ctx => ` ₹${ctx.parsed.toLocaleString('en-IN')}`
+                        }
+                    }
+                }
+            }
+        });
+    }
+</script>
 </body>
 </html>

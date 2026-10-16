@@ -33,30 +33,6 @@ def index():
         today=date.today().isoformat()
     )
 
-@app.route('/analytics')
-def analytics():
-    conn = get_db_connection()
-    
-    # Total overall spend query
-    total_spend = conn.execute('SELECT SUM(amount) AS overall_total FROM expenses').fetchone()['overall_total'] or 0
-    
-    # Highest spending category
-    top_cat = conn.execute('SELECT category, SUM(amount) as total FROM expenses GROUP BY category ORDER BY total DESC LIMIT 1').fetchone()
-    
-    # Payment mode breakdown query
-    mode_summary = conn.execute('SELECT payment_mode, SUM(amount) as total FROM expenses GROUP BY payment_mode').fetchall()
-    
-    conn.close()
-    trash_count = len(session.get('deleted_items', []))
-    
-    return render_template(
-        'analytics.html',
-        total_spend=total_spend,
-        top_cat=top_cat,
-        mode_summary=mode_summary,
-        trash_count=trash_count
-    )
-
 @app.route('/add', methods=['POST'])
 def add_expense():
     title = request.form['title']
