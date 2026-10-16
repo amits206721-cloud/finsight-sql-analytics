@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>FinSight - Deleted Items (Trash)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        @view-transition {
+            navigation: auto;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f8fafc;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.05) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(124, 58, 237, 0.04) 0px, transparent 50%);
+            color: #0f172a;
+            min-height: 100vh;
+            padding-bottom: 60px;
+        }
+        .tracking-tight {
+            letter-spacing: -0.03em;
+        }
+
+        .navbar-custom {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.05);
+            padding: 14px 24px;
+        }
+
+        .hero-banner {
+            background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+            border: 1px solid #e2e8f0;
+            border-radius: 24px;
+            padding: 36px;
+            box-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.04);
+        }
+
+        .card-custom {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 24px;
+            box-shadow: 0 12px 30px -10px rgba(15, 23, 42, 0.05);
+        }
+
+        .nav-pill-btn {
+            border-radius: 12px;
+            padding: 10px 20px;
+            font-weight: 600;
+            font-size: 0.925rem;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+        .nav-pill-active {
+            background: #6366f1;
+            color: white !important;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        }
+        .nav-pill-inactive {
+            background: #f1f5f9;
+            color: #64748b !important;
+            border: 1px solid #e2e8f0;
+        }
+        .nav-pill-inactive:hover {
+            background: #e2e8f0;
+            color: #0f172a !important;
+        }
+
+        .table th {
+            font-weight: 700;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #64748b;
+            background-color: transparent !important;
+            border-bottom: 2px solid #f1f5f9;
+            padding: 16px;
+        }
+        .table tbody tr {
+            transition: background-color 0.15s ease;
+        }
+        .table tbody tr:hover {
+            background-color: #f8fafc;
+        }
+        .table td {
+            vertical-align: middle;
+            padding: 18px 16px;
+            border-bottom: 1px solid #f1f5f9;
+            color: #334155;
+            font-size: 0.95rem;
+        }
+
+        /* Modernized Styled Restore Button */
+        .restore-btn {
+            background-color: #dcfce7;
+            color: #16a34a;
+            border-radius: 10px;
+            padding: 8px 18px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            border: 1px solid #bbf7d0;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            text-decoration: none;
+            display: inline-block;
+        }
+        .restore-btn:hover {
+            background-color: #16a34a;
+            color: white;
+            box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+            transform: translateY(-1px);
+        }
+        .restore-btn:active {
+            transform: scale(0.96);
+        }
+
+        .btn-primary-custom {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            border: none;
+            border-radius: 14px;
+            padding: 12px 24px;
+            font-weight: 700;
+            color: white;
+            box-shadow: 0 8px 20px -4px rgba(99, 102, 241, 0.4);
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.2s ease;
+        }
+        .btn-primary-custom:hover {
+            transform: translateY(-1px);
+            color: white;
+        }
+    </style>
+</head>
+<body class="py-4">
+    <div class="container" style="max-width: 1050px;">
+        
+        <!-- Navigation Bar -->
+        <nav class="navbar-custom d-flex align-items-center justify-content-between mb-4 sticky-top">
+            <a class="fw-extrabold fs-4 text-decoration-none d-flex align-items-center gap-2" href="{{ url_for('index') }}">
+                <div class="text-white p-2 rounded-3 fs-5 shadow-sm" style="background: linear-gradient(135deg, #6366f1, #4f46e5);">💰</div>
+                <span class="text-dark tracking-tight">Fin<span style="color: #6366f1;">Sight</span></span>
+            </a>
+            <div class="d-flex align-items-center gap-2">
+                <a href="{{ url_for('index') }}" class="nav-pill-btn nav-pill-inactive">Dashboard</a>
+                <a href="{{ url_for('trash') }}" class="nav-pill-btn nav-pill-active position-relative">
+                    🗑️ Trash
+                    {% if trash_count > 0 %}
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger px-2 py-1">
+                        {{ trash_count }}
+                    </span>
+                    {% endif %}
+                </a>
+            </div>
+        </nav>
+
+        <!-- Hero Banner -->
+        <div class="hero-banner mb-4">
+            <h1 class="fw-extrabold text-dark display-6 mb-2 tracking-tight">Deleted Items History</h1>
+            <p class="text-muted mb-0 fs-6">Items deleted from your dashboard are securely managed here in session storage. You can restore them instantly back to your SQLite database.</p>
+        </div>
+
+        <!-- Trash Table Card -->
+        <div class="card-custom p-4">
+            {% if deleted_items %}
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Category</th>
+                            <th>Mode</th>
+                            <th>Amount</th>
+                            <th>Date</th>
+                            <th class="text-end">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in deleted_items %}
+                        <tr>
+                            <td class="fw-bold text-dark">{{ item['title'] }}</td>
+                            <td><span class="badge bg-light text-secondary border border-secondary-subtle px-2.5 py-1.5 rounded-3 fw-semibold">{{ item['category'] }}</span></td>
+                            <td><span class="text-muted small fw-medium">{{ item['payment_mode'] }}</span></td>
+                            <td class="fw-extrabold text-dark">₹{{ item['amount'] }}</td>
+                            <td class="text-muted small fw-medium">{{ item['spend_date'] }}</td>
+                            <td class="text-end">
+                                <a href="{{ url_for('restore_item', index=loop.index0) }}" class="restore-btn">Restore</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <div class="mb-3 fs-1">✨</div>
+                <h5 class="fw-bold text-dark mb-1">Your trash bin is completely empty!</h5>
+                <p class="text-muted small mb-4">Deleted transactions will appear here for easy recovery.</p>
+                <a href="{{ url_for('index') }}" class="btn-primary-custom">Back to Dashboard</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

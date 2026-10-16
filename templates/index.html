@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>FinSight - SQL Analytics Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Butter-smooth page view transitions */
+        @view-transition {
+            navigation: auto;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f8fafc;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.05) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(124, 58, 237, 0.04) 0px, transparent 50%);
+            color: #0f172a;
+            min-height: 100vh;
+            padding-bottom: 60px;
+        }
+        .tracking-tight {
+            letter-spacing: -0.03em;
+        }
+
+        /* Modern Frosted Glass Navbar */
+        .navbar-custom {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.05);
+            padding: 14px 24px;
+        }
+
+        /* Light Modern Hero Banner */
+        .hero-banner {
+            background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+            border: 1px solid #e2e8f0;
+            border-radius: 24px;
+            padding: 36px;
+            box-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.04);
+            position: relative;
+            overflow: hidden;
+        }
+        .hero-banner::before {
+            content: '';
+            position: absolute;
+            top: 0; right: 0; width: 300px; height: 100%;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        /* Light High-End Cards with Subtle Lift */
+        .card-custom {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 24px;
+            box-shadow: 0 12px 30px -10px rgba(15, 23, 42, 0.05);
+            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+        }
+        .card-custom:hover {
+            box-shadow: 0 20px 40px -12px rgba(99, 102, 241, 0.1);
+            transform: translateY(-2px);
+        }
+
+        /* Modern Styled Form Inputs */
+        .form-control, .form-select {
+            background: #f8fafc;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 14px;
+            padding: 13px 18px;
+            font-size: 0.95rem;
+            color: #0f172a;
+            transition: all 0.2s ease;
+        }
+        .form-control:focus, .form-select:focus {
+            background: #ffffff;
+            border-color: #6366f1;
+            color: #0f172a;
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12);
+        }
+        .form-control::placeholder { color: #94a3b8; }
+
+        /* Modernized Interactive Primary Button */
+        .btn-primary-custom {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            border: none;
+            border-radius: 14px;
+            padding: 14px 28px;
+            font-weight: 700;
+            color: white;
+            box-shadow: 0 8px 20px -4px rgba(99, 102, 241, 0.4);
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .btn-primary-custom:hover {
+            background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 25px -4px rgba(99, 102, 241, 0.5);
+            color: white;
+        }
+        .btn-primary-custom:active {
+            transform: scale(0.98);
+        }
+
+        /* Modern Pill Navigation */
+        .nav-pill-btn {
+            border-radius: 12px;
+            padding: 10px 20px;
+            font-weight: 600;
+            font-size: 0.925rem;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+        .nav-pill-active {
+            background: #6366f1;
+            color: white !important;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        }
+        .nav-pill-inactive {
+            background: #f1f5f9;
+            color: #64748b !important;
+            border: 1px solid #e2e8f0;
+        }
+        .nav-pill-inactive:hover {
+            background: #e2e8f0;
+            color: #0f172a !important;
+        }
+
+        /* Tables & Rows */
+        .table th {
+            font-weight: 700;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #64748b;
+            background-color: transparent !important;
+            border-bottom: 2px solid #f1f5f9;
+            padding: 16px;
+        }
+        .table tbody tr {
+            transition: background-color 0.15s ease, opacity 0.3s ease, transform 0.3s ease;
+        }
+        .table tbody tr.deleting {
+            opacity: 0;
+            transform: translateX(40px);
+        }
+        .table tbody tr:hover {
+            background-color: #f8fafc;
+        }
+        .table td {
+            vertical-align: middle;
+            padding: 18px 16px;
+            border-bottom: 1px solid #f1f5f9;
+            color: #334155;
+            font-size: 0.95rem;
+        }
+
+        /* Modernized Modern Delete Button */
+        .delete-btn {
+            background-color: #fee2e2;
+            color: #dc2626;
+            border-radius: 10px;
+            padding: 8px 16px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            border: 1px solid #fecaca;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            text-decoration: none;
+            display: inline-block;
+        }
+        .delete-btn:hover {
+            background-color: #dc2626;
+            color: white;
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+            transform: translateY(-1px);
+        }
+        .delete-btn:active {
+            transform: scale(0.96);
+        }
+    </style>
+</head>
+<body class="py-4">
+    <div class="container" style="max-width: 1150px;">
+        
+        <!-- Navigation Bar -->
+        <nav class="navbar-custom d-flex align-items-center justify-content-between mb-4 sticky-top">
+            <a class="fw-bolder fs-4 text-decoration-none d-flex align-items-center gap-2" href="{{ url_for('index') }}">
+                <div class="text-white p-2 rounded-3 fs-5 shadow-sm" style="background: linear-gradient(135deg, #6366f1, #4f46e5);">💰</div>
+                <span class="text-dark tracking-tight">Fin<span style="color: #6366f1;">Sight</span></span>
+            </a>
+            <div class="d-flex align-items-center gap-2">
+                <a href="{{ url_for('index') }}" class="nav-pill-btn nav-pill-active">Dashboard</a>
+                <a href="{{ url_for('trash') }}" class="nav-pill-btn nav-pill-inactive position-relative">
+                    🗑️ Trash
+                    <span id="trash-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger px-2 py-1 {% if trash_count == 0 %}d-none{% endif %}">
+                        {{ trash_count }}
+                    </span>
+                </a>
+            </div>
+        </nav>
+
+        <!-- Hero Banner -->
+        <div class="hero-banner mb-4">
+            <span class="badge mb-2 px-3 py-2 rounded-pill fw-bold" style="background: #e0e7ff; color: #4f46e5; font-size: 0.75rem; border: 1px solid #c7d2fe;">LIVE SQL ANALYTICS ENGINE</span>
+            <h1 class="fw-bolder text-dark display-6 mb-2 tracking-tight">Financial Intelligence Dashboard</h1>
+            <p class="text-muted mb-0 fs-6">Real-time database analytics powered by Python Flask, SQLite, and optimized DQL queries (`GROUP BY`, `SUM`, `SELECT`, `DELETE`).</p>
+        </div>
+
+        <!-- Add Expense Form Card -->
+        <div class="card-custom p-4 mb-4">
+            <h5 class="fw-bold text-dark mb-4 d-flex align-items-center gap-2">
+                <span class="p-2 rounded-2 bg-light text-primary border shadow-sm">➕</span> Add New Expense Record
+            </h5>
+            <form action="{{ url_for('add_expense') }}" method="POST" class="row g-3">
+                <div class="col-md-3">
+                    <label for="expense-title" class="form-label small text-secondary fw-bold">Expense Title</label>
+                    <input id="expense-title" type="text" class="form-control" name="title" placeholder="e.g. Morning Coffee" required>
+                </div>
+                <div class="col-md-2">
+                    <label for="expense-category" class="form-label small text-secondary fw-bold">Category</label>
+                    <select id="expense-category" class="form-select" name="category" required>
+                        <option value="Food">Food</option>
+                        <option value="Travel">Travel</option>
+                        <option value="Shopping">Shopping</option>
+                        <option value="Bills">Bills</option>
+                        <option value="Entertainment">Entertainment</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="payment-mode" class="form-label small text-secondary fw-bold">Payment Mode</label>
+                    <select id="payment-mode" class="form-select" name="payment_mode" required>
+                        <option value="UPI">UPI</option>
+                        <option value="Card">Card</option>
+                        <option value="NetBanking">NetBanking</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="expense-amount" class="form-label small text-secondary fw-bold">Amount (₹)</label>
+                    <input id="expense-amount" type="number" class="form-control" name="amount" min="1" step="1" placeholder="e.g. 150" required>
+                </div>
+                <div class="col-md-3">
+                    <label for="spend-date" class="form-label small text-secondary fw-bold">Date</label>
+                    <input id="spend-date" type="date" class="form-control" name="spend_date" value="{{ today }}" required>
+                </div>
+                <div class="col-12 mt-4">
+                    <button type="submit" class="btn-primary-custom w-100 py-3">Save Expense to Database</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="row g-4">
+            <!-- Left Column: Category Summary (GROUP BY) -->
+            <div class="col-md-5">
+                <div class="card-custom p-4 h-100">
+                    <h5 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+                        <span>📊</span> Spending by Category
+                    </h5>
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Category</th>
+                                    <th class="text-end">Total Spent</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in category_summary %}
+                                <tr>
+                                    <td class="fw-bold text-dark">{{ row['category'] }}</td>
+                                    <td class="text-end fw-bolder fs-6" style="color: #6366f1;">₹{{ row['total_spent'] }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: All Transactions (SELECT *) -->
+            <div class="col-md-7">
+                <div class="card-custom p-4 h-100" id="transactions">
+                    <h5 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+                        <span>📝</span> Recent Transactions
+                    </h5>
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Category</th>
+                                    <th>Mode</th>
+                                    <th>Amount</th>
+                                    <th class="text-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for e in expenses %}
+                                <tr id="row-{{ e['id'] }}">
+                                    <td class="fw-bold text-dark">{{ e['title'] }}</td>
+                                    <td><span class="badge bg-light text-dark border border-secondary-subtle px-2.5 py-1.5 rounded-3 fw-semibold">{{ e['category'] }}</span></td>
+                                    <td><span class="text-muted small fw-semibold">{{ e['payment_mode'] }}</span></td>
+                                    <td class="fw-bolder text-dark">₹{{ e['amount'] }}</td>
+                                    <td class="text-end">
+                                        <button type="button" class="delete-btn" data-delete-url="{{ url_for('delete_expense', txn_id=e['id']) }}">Delete</button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.querySelectorAll('.delete-btn').forEach(button => {
+            button.addEventListener('click', async () => {
+                const row = button.closest('tr');
+                if (!row) return;
+
+                button.disabled = true;
+                row.classList.add('deleting');
+
+                try {
+                    const response = await fetch(button.dataset.deleteUrl, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+                    if (!response.ok) {
+                        throw new Error(`Delete failed with status ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    if (data.status !== 'success') {
+                        throw new Error('The expense could not be deleted.');
+                    }
+
+                    window.location.reload();
+                } catch (error) {
+                    console.error('Unable to delete expense:', error);
+                    row.classList.remove('deleting');
+                    button.disabled = false;
+                    window.alert('Unable to delete this expense. Please try again.');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
