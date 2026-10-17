@@ -1,7 +1,8 @@
 import sqlite3
+from pathlib import Path
 
 # 1. Connect to our existing database
-conn = sqlite3.connect("finsight.db")
+conn = sqlite3.connect(Path(__file__).with_name("finsight.db"))
 cursor = conn.cursor()
 
 print("--- DQL 4: Total Spending by Category (GROUP BY + SUM) ---")
@@ -14,7 +15,7 @@ ORDER BY total_spent DESC
 """)
 for row in cursor.fetchall():
     # row[0] is category, row[1] is total_spent
-    print(f"Category: {row[0]:<15} | Total Spent: ₹{row[1]}")
+    print(f"Category: {row[0]:<15} | Total Spent: INR {row[1]}")
 
 print("\n--- DQL 5: How Many Times You Paid via UPI vs Card (GROUP BY + COUNT) ---")
 cursor.execute("""
@@ -23,9 +24,9 @@ FROM expenses
 GROUP BY payment_mode
 """)
 for row in cursor.fetchall():
-    print(f"Mode: {row[0]:<10} | Transactions: {row[1]} | Total: ₹{row[2]}")
+    print(f"Mode: {row[0]:<10} | Transactions: {row[1]} | Total: INR {row[2]}")
 
-print("\n--- DQL 6: Categories Where Total Spend is Greater than ₹500 (HAVING clause) ---")
+print("\n--- DQL 6: Categories Where Total Spend is Greater than INR 500 (HAVING clause) ---")
 cursor.execute("""
 SELECT category, SUM(amount) AS total_spent
 FROM expenses
@@ -34,6 +35,6 @@ HAVING total_spent > 500
 ORDER BY total_spent DESC
 """)
 for row in cursor.fetchall():
-    print(f"Category: {row[0]:<15} | Spent: ₹{row[1]}")
+    print(f"Category: {row[0]:<15} | Spent: INR {row[1]}")
 
 conn.close()

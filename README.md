@@ -64,6 +64,7 @@ ORDER BY spend_date DESC;
    ```bash
    python app.py
    ```
+   The app uses the `finsight.db` file next to `app.py` and creates the expenses table if needed, so it can also run without first running the seed script. The seed script is safe to rerun and does not delete existing transactions.
 
 5. **Open your browser:**
    Navigate to `http://127.0.0.1:5000` to interact with your dashboard.
@@ -74,9 +75,17 @@ ORDER BY spend_date DESC;
 ```text
 finsight/
 ├── finsight.db             # SQLite database file
-├── app.py                  # Main Flask routes and database connection logic
-├── step1_db.py             # Database creation and initial seeding script
+├── app.py                  # Flask routes, database access, and CSV export
+├── step1_db.py             # Safe database initialization and optional sample data
+├── step2_groupby.py        # Standalone SQL aggregation examples
 ├── README.md               # Project documentation
 └── templates/
-    └── index.html          # Main dashboard UI template with Bootstrap & HTML forms
+    ├── base.html            # Shared layout and application navigation
+    ├── index.html           # Dashboard and quick expense entry
+    ├── transactions.html    # Searchable transaction ledger
+    ├── analytics.html       # Spending analytics
+    ├── categories.html      # Category summaries
+    ├── reports.html         # CSV export and report summary
+    ├── trash.html           # Deleted transaction recovery
+    └── settings.html        # Application settings
 ```

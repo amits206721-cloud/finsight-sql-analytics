@@ -1,7 +1,8 @@
 import sqlite3
+from pathlib import Path
 
-# 1. Connect to SQLite database (creates finsight.db automatically)
-conn = sqlite3.connect("finsight.db")
+# 1. Connect to the project database regardless of the current working directory
+conn = sqlite3.connect(Path(__file__).with_name("finsight.db"))
 cursor = conn.cursor()
 
 # 2. Create ONE simple table
@@ -16,10 +17,7 @@ CREATE TABLE IF NOT EXISTS expenses (
 )
 """)
 
-# Clear old data so you can run this file multiple times cleanly
-cursor.execute("DELETE FROM expenses")
-
-# 3. Insert 8 simple sample transactions
+# 3. Seed sample transactions only when the database is empty.
 sample_data = [
     ("Zomato Dinner", "Food", "UPI", 350, "2026-10-01"),
     ("Monthly Metro Pass", "Travel", "UPI", 600, "2026-10-02"),
@@ -31,13 +29,14 @@ sample_data = [
     ("BookMyShow Movie", "Entertainment", "Card", 450, "2026-10-14")
 ]
 
-cursor.executemany("""
-INSERT INTO expenses (title, category, payment_mode, amount, spend_date)
-VALUES (?, ?, ?, ?, ?)
-""", sample_data)
+if cursor.execute("SELECT COUNT(*) FROM expenses").fetchone()[0] == 0:
+    cursor.executemany("""
+    INSERT INTO expenses (title, category, payment_mode, amount, spend_date)
+    VALUES (?, ?, ?, ?, ?)
+    """, sample_data)
 
 conn.commit()
-print("✅ Database created and 8 records inserted!\n")
+print("Database initialized. Existing transactions were preserved.\n")
 
 # ==========================================
 # NOW LET'S RUN 3 BASIC DQL (SELECT) QUERIES
@@ -48,7 +47,7 @@ cursor.execute("SELECT * FROM expenses")
 for row in cursor.fetchall():
     print(row)
 
-print("\n--- DQL 2: Filter Only UPI Payments Over ₹200 (WHERE + AND) ---")
+print("\n--- DQL 2: Filter Only UPI Payments Over INR 200 (WHERE + AND) ---")
 cursor.execute("""
 SELECT title, amount, spend_date 
 FROM expenses 

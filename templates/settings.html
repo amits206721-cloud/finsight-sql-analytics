@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}FinSight — Settings{% endblock %}
+{% block header_title %}Settings{% endblock %}
+
+{% block content %}
+<div class="content-container">
+    <div class="surface-card p-4">
+        <h2 class="h5 fw-bold mb-4">Workspace Configuration</h2>
+        
+        <div class="mb-3">
+            <label class="form-label text-secondary small fw-semibold">Database File</label>
+            <input type="text" class="form-control" value="finsight.db" disabled>
+        </div>
+        <div class="mb-3">
+            <label class="form-label text-secondary small fw-semibold">Active Design System</label>
+            <input type="text" class="form-control" value="Fintech Premium (#0B0F14 / #34D399)" disabled>
+        </div>
+        <div class="mb-3">
+            <label class="form-label text-secondary small fw-semibold">Architecture</label>
+            <input type="text" class="form-control" value="Flask / SQLite / Vanilla JS" disabled>
+        </div>
+    </div>
+</div>
+{% endblock %}

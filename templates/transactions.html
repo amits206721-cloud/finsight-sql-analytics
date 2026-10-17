@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}FinSight — Ledger{% endblock %}
+{% block header_title %}Transactions{% endblock %}
+
+{% block content %}
+<div class="content-container">
+    <div class="surface-card p-4 mb-4">
+        <div class="row g-3 align-items-center justify-content-between">
+            <div class="col-lg-5">
+                <h2 class="h5 fw-bold mb-1 text-light">Database Ledger</h2>
+                <p class="text-secondary small mb-0">Search and filter active SQL records.</p>
+            </div>
+            <div class="col-lg-7 d-flex gap-3 justify-content-lg-end">
+                <input type="search" id="searchInput" class="form-control" style="max-width: 300px;" placeholder="Search title or mode..." oninput="filterLedger()">
+                <select id="catFilter" class="form-select" style="max-width: 180px;" onchange="filterLedger()">
+                    <option value="">All Categories</option>
+                    <option value="Food">Food</option>
+                    <option value="Travel">Travel</option>
+                    <option value="Shopping">Shopping</option>
+                    <option value="Bills">Bills</option>
+                    <option value="Entertainment">Entertainment</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="surface-card overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="ledgerTable">
+                <thead>
+                    <tr class="text-secondary small text-uppercase">
+                        <th class="py-3 px-4 border-subtle">Title</th>
+                        <th class="py-3 px-4 border-subtle">Category</th>
+                        <th class="py-3 px-4 border-subtle">Mode</th>
+                        <th class="py-3 px-4 border-subtle">Date</th>
+                        <th class="py-3 px-4 border-subtle text-end">Amount</th>
+                        <th class="py-3 px-4 border-subtle text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for e in expenses %}
+                    <tr data-title="{{ e['title'] | lower }}" data-category="{{ e['category'] }}" data-mode="{{ e['payment_mode'] | lower }}">
+                        <td class="py-3 px-4 fw-medium text-light border-subtle">{{ e['title'] }}</td>
+                        <td class="py-3 px-4 border-subtle"><span class="text-secondary small fw-medium">{{ e['category'] }}</span></td>
+                        <td class="py-3 px-4 border-subtle"><span class="text-secondary small fw-medium">{{ e['payment_mode'] }}</span></td>
+                        <td class="py-3 px-4 text-secondary tabular-nums border-subtle">{{ e['spend_date'] }}</td>
+                        <td class="py-3 px-4 text-end fw-bold tabular-nums text-success border-subtle">₹{{ "{:,.0f}".format(e['amount']) }}</td>
+                        <td class="py-3 px-4 text-end border-subtle">
+                            <a href="{{ url_for('delete_expense', txn_id=e['id']) }}" class="btn-ghost py-1 px-2 text-danger border-0">Delete</a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="6" class="text-center py-5 text-secondary">No transactions found.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function filterLedger() {
+        const query = document.getElementById('searchInput').value.toLowerCase().trim();
+        const cat = document.getElementById('catFilter').value;
+        const rows = document.querySelectorAll('#ledgerTable tbody tr');
+        rows.forEach(row => {
+            if (!row.dataset.title) return;
+            const matchTitle = row.dataset.title.includes(query) || row.dataset.mode.includes(query);
+            const matchCat = !cat || row.dataset.category === cat;
+            row.style.display = (matchTitle && matchCat) ? '' : 'none';
+        });
+    }
+</script>
+{% endblock %}
